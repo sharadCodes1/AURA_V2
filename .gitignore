@@ -1,0 +1,11 @@
+# Monorepo root ignores (each sub-project also has its own .gitignore)
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Generic env / secrets (per-project .gitignore covers the rest)
+.env
+.env.*
+!.env.example
