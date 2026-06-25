@@ -1,0 +1,18 @@
+# --- Core (required) ---
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.9.2
+pydantic-settings==2.6.1
+httpx==0.27.2
+PyJWT==2.9.0
+python-dotenv==1.0.1
+websockets==13.1
+
+# --- LangGraph pipeline ---
+langgraph==0.2.50
+langchain-core==0.3.21
+
+# --- Audio (OPTIONAL) ---
+# The service runs and the text pipeline (/api/process-text) works WITHOUT these.
+# Install them only when you want real speech-to-text / text-to-speech:
+#   pip install -r requirements-audio.txt

@@ -24,9 +24,16 @@ This is a **monorepo** containing three services:
 - **AI service ↔ Backend**: service-to-service calls (validate JWTs, log commands, read macros) authed by a shared `X-Service-Token`.
 
 ## Status
-- ✅ `aura-be` — implemented (auth, commands, macros, service auth). See [aura-be/README.md](./aura-be/README.md).
-- ⬜ `aura-fe` — not started.
-- ⬜ `aura-ai` — not started.
+- ✅ `aura-be` — implemented & verified (auth, commands, macros, service auth). See [aura-be/README.md](./aura-be/README.md).
+- ✅ `aura-ai` — implemented & verified (LangGraph pipeline, text + ws endpoints, JWT, logging). See [aura-ai/README.md](./aura-ai/README.md).
+- ✅ `aura-fe` — scaffolded & builds (auth, dashboard, mic, macros). Native OS control (Tauri) deferred. See [aura-fe/README.md](./aura-fe/README.md).
+
+All three were verified end-to-end together: register/login on the frontend → backend issues a JWT →
+aura-ai validates it locally, matches macros, resolves intents, and logs commands back to the backend.
+
+## Shared contract
+The **ActionPayload** that aura-ai emits and aura-fe executes is documented once at
+[docs/action-payload-contract.md](./docs/action-payload-contract.md).
 
 ## Build order
 Backend → Frontend (browser mode) → AI service (text-input testing) → wire WebSocket → wrap in Tauri last.

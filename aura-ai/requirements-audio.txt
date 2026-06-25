@@ -1,0 +1,9 @@
+# Optional audio dependencies — only needed for real STT/TTS.
+# The core service runs fine without these (text pipeline still works).
+
+# Speech-to-text (offline, fast). Downloads a model on first use.
+faster-whisper==1.0.3
+
+# Text-to-speech — pick one:
+pyttsx3==2.98          # offline, no network
+# edge-tts==6.1.12     # higher quality, needs internet
