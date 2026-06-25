@@ -128,11 +128,16 @@ async def ws_voice(websocket: WebSocket):
         while True:
             message = await websocket.receive()
 
-            if "bytes" in message and message["bytes"] is not None:
+            # The low-level receive() yields a disconnect message rather than raising;
+            # stop the loop instead of calling receive() again (which would error).
+            if message["type"] == "websocket.disconnect":
+                break
+
+            if message.get("bytes") is not None:
                 payload = await run_pipeline(
                     user_id=user_id, audio_chunk=message["bytes"], macros=macros
                 )
-            elif "text" in message and message["text"] is not None:
+            elif message.get("text") is not None:
                 # Allow typed text over the same socket (handy for debugging).
                 payload = await run_pipeline(
                     user_id=user_id, transcript=message["text"], macros=macros
@@ -143,6 +148,8 @@ async def ws_voice(websocket: WebSocket):
             await websocket.send_json({"action_payload": payload})
     except WebSocketDisconnect:
         logger.info("WS disconnected: user=%s", user_id)
+    finally:
+        logger.info("WS closed: user=%s", user_id)
 
 
 if __name__ == "__main__":

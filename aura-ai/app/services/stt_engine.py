@@ -5,8 +5,8 @@ faster-whisper is an OPTIONAL dependency (see requirements-audio.txt). If it isn
 installed, the engine reports unavailable and the graph's stt_node falls back to
 any text already present in the state (so /api/process-text still works end-to-end).
 """
+import io
 import logging
-import tempfile
 from typing import Optional
 
 from app.config import settings
@@ -35,16 +35,21 @@ class STTEngine:
         return self._model
 
     def transcribe(self, audio_bytes: bytes) -> str:
-        """Transcribe raw audio bytes (a complete WAV/PCM blob) to text."""
+        """
+        Transcribe a complete audio blob to text.
+
+        Accepts any container faster-whisper can decode (WAV, webm/opus from the
+        browser MediaRecorder, mp3, etc.) — it decodes by content via PyAV, so the
+        format/extension doesn't matter. Returns "" if STT is unavailable or empty.
+        """
         if not self.available:
             logger.warning("faster-whisper not installed; cannot transcribe audio.")
             return ""
+        if not audio_bytes:
+            return ""
         model = self._load()
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmp:
-            tmp.write(audio_bytes)
-            tmp.flush()
-            segments, _info = model.transcribe(tmp.name, beam_size=5)
-            return " ".join(seg.text for seg in segments).strip()
+        segments, _info = model.transcribe(io.BytesIO(audio_bytes), beam_size=5)
+        return " ".join(seg.text for seg in segments).strip()
 
 
 stt_engine = STTEngine()
