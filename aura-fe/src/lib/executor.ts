@@ -1,18 +1,21 @@
 // Action executor.
 //
-// In the browser (web mode) we CANNOT control the OS — so this is a STUB that logs
-// what would happen. When the app is wrapped in Tauri for the desktop build, replace
-// the body of `executeAction` with calls into Tauri Rust commands, e.g.:
+// - Inside the Tauri desktop shell: invoke the native `execute_action` Rust command,
+//   which actually performs the OS action (open apps, type, click, scroll, system).
+// - In a plain browser (web dev mode): browsers are sandboxed and cannot control the
+//   OS, so we log what would happen.
 //
-//   import { invoke } from "@tauri-apps/api/core";
-//   await invoke("open_app", { name: payload.target });
-//
-// The Rust side (src-tauri/src/commands/*) uses a crate like `enigo` for mouse/keyboard
-// and shell calls for launching apps. See src-tauri/README.md for the plan.
+// The Rust side lives in src-tauri/src/commands.rs and consumes the same ActionPayload
+// fields (see docs/action-payload-contract.md).
 
 import type { ActionPayload } from "@/types";
 
+function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
 export async function executeAction(payload: ActionPayload): Promise<void> {
+  // Macros are expanded client-side into their ordered steps.
   if (payload.action === "run_macro" && payload.steps?.length) {
     for (const step of payload.steps) {
       await executeAction(step);
@@ -20,12 +23,29 @@ export async function executeAction(payload: ActionPayload): Promise<void> {
     return;
   }
 
-  // STUB: browser cannot perform OS actions. Log instead.
+  if (isTauri()) {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const result = await invoke<string>("execute_action", {
+        action: payload.action,
+        target: payload.target,
+        params: payload.params ?? {},
+      });
+      // eslint-disable-next-line no-console
+      console.log("[executor:tauri]", result);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[executor:tauri] failed", err);
+    }
+    return;
+  }
+
+  // Web fallback: cannot control the OS from a sandboxed browser.
   // eslint-disable-next-line no-console
   console.log("[executor:stub]", payload.action, payload.target, payload.params);
 }
 
-// Speak the assistant's response using the browser's built-in TTS (works without aura-ai TTS).
+// Speak the assistant's response using the browser's built-in TTS.
 export function speak(text: string): void {
   if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
   const utterance = new SpeechSynthesisUtterance(text);

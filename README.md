@@ -25,11 +25,13 @@ This is a **monorepo** containing three services:
 
 ## Status
 - ✅ `aura-be` — implemented & verified (auth, commands, macros, service auth). See [aura-be/README.md](./aura-be/README.md).
-- ✅ `aura-ai` — implemented & verified (LangGraph pipeline, text + ws endpoints, JWT, logging). See [aura-ai/README.md](./aura-ai/README.md).
-- ✅ `aura-fe` — scaffolded & builds (auth, dashboard, mic, macros). Native OS control (Tauri) deferred. See [aura-fe/README.md](./aura-fe/README.md).
+- ✅ `aura-ai` — implemented & verified incl. **real speech-to-text** (Whisper). LangGraph pipeline, text + ws endpoints, JWT, logging. See [aura-ai/README.md](./aura-ai/README.md).
+- ✅ `aura-fe` — implemented & builds, incl. **native OS control via Tauri** (open/type/click/scroll/system). See [aura-fe/README.md](./aura-fe/README.md).
 
-All three were verified end-to-end together: register/login on the frontend → backend issues a JWT →
-aura-ai validates it locally, matches macros, resolves intents, and logs commands back to the backend.
+Verified end-to-end: register/login on the frontend → backend issues a JWT → aura-ai validates it
+locally, transcribes speech, matches macros, resolves intents, and logs commands back to the backend.
+The Tauri shell then executes the resolved action on the host (the native Rust layer compiles clean;
+launching the desktop app + granting macOS Accessibility is a manual step).
 
 ## Shared contract
 The **ActionPayload** that aura-ai emits and aura-fe executes is documented once at

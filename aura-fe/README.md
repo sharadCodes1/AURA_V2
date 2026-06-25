@@ -65,9 +65,15 @@ Requires `aura-be` on :8000 (auth/data) and `aura-ai` on :8001 (voice ws).
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run start` — serve the production build
 
-## OS control / Tauri
-A browser is sandboxed, so `executeAction` in [`src/lib/executor.ts`](./src/lib/executor.ts)
-currently **logs** the action instead of performing it. To enable real control, wrap the app
-in Tauri and replace the stub with `invoke()` calls into Rust commands —
-see [`src-tauri/README.md`](./src-tauri/README.md). The full voice→intent→action flow is
-testable today with the stub.
+## OS control / Tauri (implemented)
+Real OS control is implemented via Tauri v2. `executeAction` in
+[`src/lib/executor.ts`](./src/lib/executor.ts) detects whether it's running inside the Tauri
+desktop shell: if so it `invoke()`s the native `execute_action` Rust command (open/close apps,
+type, click, scroll, system control); in a plain browser it falls back to logging (browsers
+can't control the OS). See [`src-tauri/README.md`](./src-tauri/README.md) for the command map,
+build commands, and the macOS Accessibility permission note.
+
+```bash
+npm run tauri dev      # run the desktop app
+npm run tauri build    # bundle .app/.dmg (static-exports the UI to out/)
+```

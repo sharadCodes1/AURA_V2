@@ -1,7 +1,14 @@
-import { redirect } from "next/navigation";
+"use client";
 
-// The app is client-auth'd; send first-time visitors to login.
-// (The login page redirects to /dashboard once a session exists.)
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+// Client redirect (works in Tauri's static export, unlike server redirect()).
+// The dashboard guard sends authenticated users onward from /login.
 export default function Home() {
-  redirect("/login");
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/login");
+  }, [router]);
+  return null;
 }

@@ -19,7 +19,9 @@ This is one of three repos (see the [root README](../README.md)).
 - **Optional:** faster-whisper (STT), pyttsx3 (TTS) — see `requirements-audio.txt`
 
 > The core service runs and the **text pipeline works without any audio dependencies**.
-> Install audio deps only when you want real speech in/out.
+> Install audio deps (`requirements-audio.txt`) for real speech-to-text. **STT is verified
+> working**: real speech → faster-whisper transcript → intent → ActionPayload, end-to-end.
+> The `base` model (~140 MB) downloads once on first use and is cached.
 
 ## Pipeline (LangGraph)
 
