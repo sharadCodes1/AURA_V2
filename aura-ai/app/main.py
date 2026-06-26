@@ -51,7 +51,10 @@ async def run_pipeline(
     macros: Optional[list] = None,
     log: bool = True,
 ) -> dict:
-    """Run the graph once and (optionally) log the result. Returns the action payload."""
+    """
+    Run the graph once and (optionally) log the result.
+    Returns {transcript, action_payload, status} so the client can show what was heard.
+    """
     state = {
         "user_id": user_id or 0,
         "transcript": transcript,
@@ -61,15 +64,17 @@ async def run_pipeline(
     result = await graph.ainvoke(state)
 
     payload = result.get("action_payload") or unknown_action().model_dump()
+    heard = result.get("transcript", transcript)
+    status = result.get("status", "ambiguous")
     if log and user_id:
         await backend_client.log_command(
             user_id=user_id,
-            raw_transcript=result.get("transcript", transcript),
+            raw_transcript=heard,
             resolved_intent=payload.get("action", "unknown"),
             action_payload=payload,
-            status=result.get("status", "ambiguous"),
+            status=status,
         )
-    return payload
+    return {"transcript": heard, "action_payload": payload, "status": status}
 
 
 # --------------------------------------------------------------------------- #
@@ -103,10 +108,9 @@ async def process_text(req: ProcessTextRequest):
     if user_id:
         macros = await backend_client.get_user_macros(user_id)
 
-    payload = await run_pipeline(
+    return await run_pipeline(
         user_id=user_id, transcript=req.text, macros=macros, log=bool(user_id)
     )
-    return {"action_payload": payload}
 
 
 # --------------------------------------------------------------------------- #
@@ -134,18 +138,19 @@ async def ws_voice(websocket: WebSocket):
                 break
 
             if message.get("bytes") is not None:
-                payload = await run_pipeline(
+                result = await run_pipeline(
                     user_id=user_id, audio_chunk=message["bytes"], macros=macros
                 )
             elif message.get("text") is not None:
                 # Allow typed text over the same socket (handy for debugging).
-                payload = await run_pipeline(
+                result = await run_pipeline(
                     user_id=user_id, transcript=message["text"], macros=macros
                 )
             else:
                 continue
 
-            await websocket.send_json({"action_payload": payload})
+            # result = {transcript, action_payload, status}
+            await websocket.send_json(result)
     except WebSocketDisconnect:
         logger.info("WS disconnected: user=%s", user_id)
     finally:

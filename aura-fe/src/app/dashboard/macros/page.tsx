@@ -81,12 +81,14 @@ export default function MacrosPage() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <h2 className="text-2xl font-bold mb-6">Macros</h2>
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-xl font-semibold tracking-tight mb-1">Macros</h1>
+      <p className="text-sm text-zinc-500 mb-6">
+        Chain several actions under one phrase — say it to run them all.
+      </p>
 
-      <form onSubmit={save} className="bg-aura-panel rounded-2xl border border-slate-800 p-6 mb-8">
-        <h3 className="font-semibold mb-4">New macro</h3>
-        <div className="mb-4">
+      <form onSubmit={save} className="card p-5 mb-8">
+        <div className="mb-4 max-w-sm">
           <Input
             label="Trigger phrase"
             name="trigger"
@@ -96,14 +98,15 @@ export default function MacrosPage() {
           />
         </div>
 
-        <p className="text-sm text-slate-300 mb-2">Steps</p>
-        <div className="flex flex-col gap-2 mb-4">
+        <span className="label">Steps</span>
+        <div className="flex flex-col gap-2 mt-2 mb-4">
           {steps.map((step, i) => (
             <div key={i} className="flex gap-2 items-center">
+              <span className="text-xs text-zinc-600 w-4 tabular-nums">{i + 1}</span>
               <select
                 value={step.action}
                 onChange={(e) => updateStep(i, { action: e.target.value as ActionType })}
-                className="rounded-lg bg-aura-bg border border-slate-700 px-2 py-2 text-sm"
+                className="field !w-44 font-mono"
               >
                 {ACTION_TYPES.map((a) => (
                   <option key={a} value={a}>
@@ -115,15 +118,15 @@ export default function MacrosPage() {
                 value={step.target}
                 onChange={(e) => updateStep(i, { target: e.target.value })}
                 placeholder="target (e.g. chrome)"
-                className="flex-1 rounded-lg bg-aura-bg border border-slate-700 px-3 py-2 text-sm"
+                className="field flex-1"
               />
               <button
                 type="button"
                 onClick={() => removeStep(i)}
-                className="text-slate-400 hover:text-red-400 px-2"
+                className="text-zinc-600 hover:text-red-400 px-2 text-lg leading-none"
                 aria-label="Remove step"
               >
-                ✕
+                ×
               </button>
             </div>
           ))}
@@ -140,25 +143,24 @@ export default function MacrosPage() {
         {error && <p className="text-sm text-red-400 mt-3">{error}</p>}
       </form>
 
-      <h3 className="font-semibold mb-3">Your macros</h3>
+      <h2 className="text-sm font-medium text-zinc-400 mb-3">Your macros</h2>
       {macros.length === 0 ? (
-        <p className="text-slate-500">No macros yet.</p>
+        <p className="text-zinc-600 text-sm py-6 text-center border border-dashed border-line rounded-xl">
+          No macros yet.
+        </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {macros.map((m) => (
-            <li
-              key={m.id}
-              className="rounded-lg bg-aura-panel border border-slate-800 px-4 py-3 flex items-center justify-between"
-            >
-              <div>
+            <li key={m.id} className="card px-4 py-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
                 <span className="font-medium">{m.trigger_phrase}</span>
-                <div className="text-xs text-slate-400 mt-1">
+                <div className="text-xs text-zinc-500 mt-1 font-mono truncate">
                   {m.actions.map((a) => `${a.action}${a.target ? `:${a.target}` : ""}`).join(" → ")}
                 </div>
               </div>
               <button
                 onClick={() => remove(m.id)}
-                className="text-slate-400 hover:text-red-400"
+                className="text-zinc-500 hover:text-red-400 text-sm shrink-0"
               >
                 Delete
               </button>

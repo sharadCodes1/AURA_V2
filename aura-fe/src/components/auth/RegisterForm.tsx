@@ -95,7 +95,7 @@ export function RegisterForm() {
       </Button>
       <p className="text-sm text-slate-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-aura-accent2 hover:underline">
+        <Link href="/login" className="text-accent hover:underline">
           Sign in
         </Link>
       </p>

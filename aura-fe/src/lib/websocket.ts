@@ -16,8 +16,14 @@ const WS_URL =
 
 export type SocketStatus = "idle" | "connecting" | "open" | "closed" | "error";
 
+export interface VoiceResult {
+  transcript: string;
+  action_payload: ActionPayload;
+  status: "success" | "failed" | "ambiguous";
+}
+
 interface VoiceSocketHandlers {
-  onAction?: (payload: ActionPayload) => void;
+  onResult?: (result: VoiceResult) => void;
   onStatusChange?: (status: SocketStatus) => void;
 }
 
@@ -52,7 +58,11 @@ export class VoiceSocket {
       try {
         const data = JSON.parse(event.data);
         if (data.action_payload) {
-          this.handlers.onAction?.(data.action_payload as ActionPayload);
+          this.handlers.onResult?.({
+            transcript: data.transcript ?? "",
+            action_payload: data.action_payload as ActionPayload,
+            status: data.status ?? "ambiguous",
+          });
         }
       } catch {
         // ignore non-JSON frames

@@ -6,6 +6,38 @@
   color-scheme: dark;
 }
 
+html,
 body {
-  @apply bg-aura-bg text-slate-100 antialiased;
+  height: 100%;
+}
+
+body {
+  @apply bg-bg text-zinc-100 antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+/* Subtle scrollbars that match the dark UI */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-line rounded-full;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-line rounded-xl;
+  }
+  .field {
+    @apply w-full rounded-lg bg-bg border border-line px-3 py-2 text-sm text-zinc-100
+      placeholder:text-zinc-600 outline-none transition
+      focus:border-accent focus:ring-1 focus:ring-accent/40;
+  }
+  .label {
+    @apply text-xs font-medium uppercase tracking-wide text-zinc-500;
+  }
 }

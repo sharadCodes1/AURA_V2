@@ -10,39 +10,52 @@
 
 import type { ActionPayload } from "@/types";
 
-function isTauri(): boolean {
+export interface ExecResult {
+  ok: boolean;
+  detail: string;
+  /** true when running in the browser (no real OS control). */
+  simulated: boolean;
+}
+
+export function isTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
-export async function executeAction(payload: ActionPayload): Promise<void> {
+export async function executeAction(payload: ActionPayload): Promise<ExecResult> {
+  if (payload.action === "unknown") {
+    return { ok: false, detail: "no action", simulated: !isTauri() };
+  }
+
   // Macros are expanded client-side into their ordered steps.
   if (payload.action === "run_macro" && payload.steps?.length) {
-    for (const step of payload.steps) {
-      await executeAction(step);
-    }
-    return;
+    const steps = payload.steps ?? [];
+    const results = await Promise.all(steps.map((s) => executeAction(s)));
+    const failed = results.filter((r) => !r.ok);
+    return {
+      ok: failed.length === 0,
+      detail: failed.length ? `${failed.length}/${results.length} steps failed` : `${results.length} steps`,
+      simulated: !isTauri(),
+    };
   }
 
   if (isTauri()) {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
-      const result = await invoke<string>("execute_action", {
+      const detail = await invoke<string>("execute_action", {
         action: payload.action,
         target: payload.target,
         params: payload.params ?? {},
       });
-      // eslint-disable-next-line no-console
-      console.log("[executor:tauri]", result);
+      return { ok: true, detail, simulated: false };
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[executor:tauri] failed", err);
+      return { ok: false, detail: String(err), simulated: false };
     }
-    return;
   }
 
   // Web fallback: cannot control the OS from a sandboxed browser.
   // eslint-disable-next-line no-console
   console.log("[executor:stub]", payload.action, payload.target, payload.params);
+  return { ok: true, detail: "simulated (run in the desktop app to actually execute)", simulated: true };
 }
 
 // Speak the assistant's response using the browser's built-in TTS.

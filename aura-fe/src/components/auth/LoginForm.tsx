@@ -70,7 +70,7 @@ export function LoginForm() {
       </Button>
       <p className="text-sm text-slate-400">
         No account?{" "}
-        <Link href="/register" className="text-aura-accent2 hover:underline">
+        <Link href="/register" className="text-accent hover:underline">
           Create one
         </Link>
       </p>

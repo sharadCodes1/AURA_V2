@@ -62,6 +62,11 @@ export interface FeedItem {
   id: string;
   transcript: string;
   payload?: ActionPayload;
-  status: "heard" | "executed" | "failed";
+  // resolution status from aura-ai
+  resolution: "success" | "failed" | "ambiguous";
+  // execution result from the OS layer (or simulation in the browser)
+  execOk?: boolean;
+  execDetail?: string;
+  simulated?: boolean;
   at: number;
 }

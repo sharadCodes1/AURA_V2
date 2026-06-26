@@ -8,12 +8,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        aura: {
-          bg: "#0b0f19",
-          panel: "#141a2a",
-          accent: "#6366f1",
-          accent2: "#22d3ee",
+        // Near-black neutral surfaces with a single confident accent.
+        bg: "#09090b",
+        surface: "#141417",
+        surface2: "#1b1b1f",
+        line: "#2a2a30",
+        accent: {
+          DEFAULT: "#2dd4bf", // teal-400
+          soft: "#0d9488",
+          dim: "#134e4a",
         },
+      },
+      fontFamily: {
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+      boxShadow: {
+        glow: "0 0 0 1px rgba(45,212,191,0.4), 0 0 40px -8px rgba(45,212,191,0.45)",
+      },
+      keyframes: {
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-up": "fade-up 0.18s ease-out",
       },
     },
   },

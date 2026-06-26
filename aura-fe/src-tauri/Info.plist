@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Shown in the macOS microphone permission prompt; required or getUserMedia is
+       denied outright in the WKWebView. -->
+  <key>NSMicrophoneUsageDescription</key>
+  <string>AURA needs the microphone to hear your voice commands.</string>
+</dict>
+</plist>

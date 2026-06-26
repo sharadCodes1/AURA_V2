@@ -44,18 +44,49 @@ pub fn execute_action(action: String, target: String, params: Value) -> Result<S
     }
 }
 
+/// Map a canonical/spoken app name to the actual macOS application name.
+/// `open -a chrome` fails — macOS wants "Google Chrome".
+fn macos_app_name(name: &str) -> String {
+    match name.to_lowercase().as_str() {
+        "chrome" | "google chrome" | "browser" => "Google Chrome",
+        "vscode" | "code" | "vs code" | "visual studio code" => "Visual Studio Code",
+        "terminal" | "iterm" => "Terminal",
+        "finder" | "files" | "explorer" => "Finder",
+        "safari" => "Safari",
+        "spotify" => "Spotify",
+        "notes" => "Notes",
+        "calculator" => "Calculator",
+        "mail" | "email" => "Mail",
+        "slack" => "Slack",
+        "messages" => "Messages",
+        "preview" => "Preview",
+        "settings" | "system settings" | "preferences" => "System Settings",
+        _ => return name.to_string(), // unknown: pass through as-is
+    }
+    .to_string()
+}
+
 fn open_app(name: &str) -> Result<String, String> {
     if name.is_empty() {
         return Err("no app name".into());
     }
     let status = match std::env::consts::OS {
-        "macos" => Command::new("open").args(["-a", name]).status(),
+        "macos" => {
+            let app = macos_app_name(name);
+            // Try the mapped/spoken name; if that exact app isn't found, fall back to raw.
+            let first = Command::new("open").args(["-a", &app]).status();
+            match first {
+                Ok(s) if s.success() => return Ok(format!("opened {app}")),
+                _ if app != name => Command::new("open").args(["-a", name]).status(),
+                other => other,
+            }
+        }
         "windows" => Command::new("cmd").args(["/C", "start", "", name]).status(),
         _ => Command::new("xdg-open").arg(name).status(),
     };
     match status {
         Ok(s) if s.success() => Ok(format!("opened {name}")),
-        Ok(s) => Err(format!("failed to open {name} (exit {s})")),
+        Ok(s) => Err(format!("could not find or open app '{name}' (exit {s})")),
         Err(e) => Err(format!("failed to open {name}: {e}")),
     }
 }
@@ -66,7 +97,7 @@ fn close_app(name: &str) -> Result<String, String> {
     }
     let result = match std::env::consts::OS {
         "macos" => Command::new("osascript")
-            .args(["-e", &format!("quit app \"{name}\"")])
+            .args(["-e", &format!("quit app \"{}\"", macos_app_name(name))])
             .status(),
         "windows" => Command::new("taskkill").args(["/IM", name, "/F"]).status(),
         _ => Command::new("pkill").arg(name).status(),

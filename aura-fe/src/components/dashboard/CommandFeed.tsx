@@ -1,16 +1,30 @@
 import type { FeedItem } from "@/types";
 
-const statusColor: Record<FeedItem["status"], string> = {
-  heard: "text-slate-400",
-  executed: "text-emerald-400",
-  failed: "text-red-400",
-};
+function timeAgo(at: number): string {
+  const s = Math.round((Date.now() - at) / 1000);
+  if (s < 5) return "just now";
+  if (s < 60) return `${s}s ago`;
+  return `${Math.round(s / 60)}m ago`;
+}
+
+function Badge({ item }: { item: FeedItem }) {
+  if (item.payload?.action === "unknown" || item.resolution === "ambiguous") {
+    return <span className="text-amber-400 text-xs">unrecognized</span>;
+  }
+  if (item.execOk === false) {
+    return <span className="text-red-400 text-xs">failed</span>;
+  }
+  if (item.simulated) {
+    return <span className="text-zinc-500 text-xs">simulated</span>;
+  }
+  return <span className="text-accent text-xs">done</span>;
+}
 
 export function CommandFeed({ items }: { items: FeedItem[] }) {
   if (items.length === 0) {
     return (
-      <p className="text-slate-500 text-sm">
-        No commands yet. Hit the mic (or use the text box) to try one.
+      <p className="text-zinc-600 text-sm py-6 text-center border border-dashed border-line rounded-xl">
+        Commands you speak or type will appear here.
       </p>
     );
   }
@@ -18,19 +32,21 @@ export function CommandFeed({ items }: { items: FeedItem[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {items.map((item) => (
-        <li
-          key={item.id}
-          className="rounded-lg bg-aura-bg border border-slate-800 px-3 py-2 text-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-medium">{item.transcript || "(audio)"}</span>
-            <span className={statusColor[item.status]}>{item.status}</span>
+        <li key={item.id} className="card px-4 py-3 animate-fade-up">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-medium truncate">
+              {item.transcript || <span className="text-zinc-500">(audio)</span>}
+            </span>
+            <div className="flex items-center gap-3 shrink-0">
+              <Badge item={item} />
+              <span className="text-[11px] text-zinc-600">{timeAgo(item.at)}</span>
+            </div>
           </div>
-          {item.payload && (
-            <div className="text-xs text-slate-400 mt-1">
-              → {item.payload.action}
+          {item.payload && item.payload.action !== "unknown" && (
+            <div className="mt-1 text-xs text-zinc-500 font-mono">
+              {item.payload.action}
               {item.payload.target ? ` · ${item.payload.target}` : ""}
-              {item.payload.spoken_response ? ` · “${item.payload.spoken_response}”` : ""}
+              {item.execDetail ? `  —  ${item.execDetail}` : ""}
             </div>
           )}
         </li>
