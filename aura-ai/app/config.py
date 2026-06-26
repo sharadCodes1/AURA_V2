@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # STT
     whisper_model_size: str = "base"
 
+    # Wake word for hands-free conversation mode.
+    wake_word: str = "hi aura"
+
     # Optional LLM intent fallback
     llm_api_key: str = ""
 

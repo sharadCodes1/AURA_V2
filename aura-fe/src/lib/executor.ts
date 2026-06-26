@@ -59,8 +59,19 @@ export async function executeAction(payload: ActionPayload): Promise<ExecResult>
 }
 
 // Speak the assistant's response using the browser's built-in TTS.
+// Prefers a natural English voice when one is available.
 export function speak(text: string): void {
   if (!text || typeof window === "undefined" || !window.speechSynthesis) return;
+  const synth = window.speechSynthesis;
   const utterance = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.speak(utterance);
+  const voices = synth.getVoices();
+  const preferred =
+    voices.find((v) => /Samantha|Karen|Daniel|Google US English/i.test(v.name)) ||
+    voices.find((v) => v.lang?.startsWith("en"));
+  if (preferred) utterance.voice = preferred;
+  utterance.rate = 1.04;
+  utterance.pitch = 1.0;
+  // Cancel anything mid-speech so replies don't pile up.
+  synth.cancel();
+  synth.speak(utterance);
 }

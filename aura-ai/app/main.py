@@ -10,6 +10,7 @@ The WebSocket authenticates the user JWT (passed as ?token=) up front, fetches t
 user's macros once, then for each incoming message runs the LangGraph pipeline and
 streams back an ActionPayload. Every resolved command is logged to the backend.
 """
+import asyncio
 import logging
 from typing import Optional
 
@@ -19,6 +20,7 @@ from pydantic import BaseModel
 
 from app.auth.jwt_validator import validate_token
 from app.config import settings
+from app.conversation import GREETING, SLEEP_REPLY, detect_sleep, detect_wake
 from app.graph.graph_builder import get_compiled_graph
 from app.schemas.action_payload import unknown_action
 from app.services.backend_client import backend_client
@@ -118,6 +120,17 @@ async def process_text(req: ProcessTextRequest):
 # --------------------------------------------------------------------------- #
 @app.websocket("/ws/voice")
 async def ws_voice(websocket: WebSocket):
+    """
+    Hands-free conversation socket.
+
+    The client streams one utterance per message (audio bytes, or text for debugging).
+    AURA stays *asleep* until it hears the wake word "Hi Aura", then stays *awake* —
+    acting on each command and replying — until a sleep phrase or the socket closes.
+
+    Each reply is a JSON message:
+      { transcript, action_payload, status, spoken_response, awake, kind }
+    kind ∈ {"asleep", "ack", "command"} tells the client how to react.
+    """
     token = websocket.query_params.get("token", "")
     user_id = await validate_token(token)
     if user_id is None:
@@ -126,31 +139,62 @@ async def ws_voice(websocket: WebSocket):
 
     await websocket.accept()
     macros = await backend_client.get_user_macros(user_id)
+    awake = False
     logger.info("WS connected: user=%s, macros=%d", user_id, len(macros))
+
+    async def reply(transcript, payload, status, kind, awake_state):
+        await websocket.send_json(
+            {
+                "transcript": transcript,
+                "action_payload": payload,
+                "status": status,
+                "spoken_response": payload.get("spoken_response", ""),
+                "awake": awake_state,
+                "kind": kind,
+            }
+        )
 
     try:
         while True:
             message = await websocket.receive()
-
-            # The low-level receive() yields a disconnect message rather than raising;
-            # stop the loop instead of calling receive() again (which would error).
             if message["type"] == "websocket.disconnect":
                 break
 
+            # Resolve this utterance to text (transcription runs off the event loop).
             if message.get("bytes") is not None:
-                result = await run_pipeline(
-                    user_id=user_id, audio_chunk=message["bytes"], macros=macros
-                )
+                transcript = await asyncio.to_thread(stt_engine.transcribe, message["bytes"])
             elif message.get("text") is not None:
-                # Allow typed text over the same socket (handy for debugging).
-                result = await run_pipeline(
-                    user_id=user_id, transcript=message["text"], macros=macros
-                )
+                transcript = message["text"]
             else:
                 continue
 
-            # result = {transcript, action_payload, status}
-            await websocket.send_json(result)
+            transcript = (transcript or "").strip()
+            if not transcript:
+                continue  # nothing intelligible; stay quiet
+
+            woke, remainder = detect_wake(transcript)
+
+            if not awake:
+                if not woke:
+                    # ambient speech while asleep — acknowledge silently to the client
+                    await reply(transcript, unknown_action("").model_dump(), "asleep", "asleep", False)
+                    continue
+                awake = True
+                if not remainder:
+                    await reply(transcript, unknown_action(GREETING).model_dump(), "success", "ack", True)
+                    continue
+                to_process = remainder  # "Hi Aura, open chrome"
+            else:
+                if detect_sleep(transcript):
+                    awake = False
+                    await reply(transcript, unknown_action(SLEEP_REPLY).model_dump(), "success", "ack", False)
+                    continue
+                to_process = remainder if woke else transcript
+
+            result = await run_pipeline(
+                user_id=user_id, transcript=to_process, macros=macros
+            )
+            await reply(result["transcript"], result["action_payload"], result["status"], "command", True)
     except WebSocketDisconnect:
         logger.info("WS disconnected: user=%s", user_id)
     finally:

@@ -19,7 +19,10 @@ export type SocketStatus = "idle" | "connecting" | "open" | "closed" | "error";
 export interface VoiceResult {
   transcript: string;
   action_payload: ActionPayload;
-  status: "success" | "failed" | "ambiguous";
+  status: "success" | "failed" | "ambiguous" | "asleep";
+  spoken_response?: string;
+  awake?: boolean;
+  kind?: "asleep" | "ack" | "command";
 }
 
 interface VoiceSocketHandlers {
@@ -62,6 +65,9 @@ export class VoiceSocket {
             transcript: data.transcript ?? "",
             action_payload: data.action_payload as ActionPayload,
             status: data.status ?? "ambiguous",
+            spoken_response: data.spoken_response ?? "",
+            awake: data.awake,
+            kind: data.kind,
           });
         }
       } catch {
