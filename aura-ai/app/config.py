@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Gemini for intent + chat + grounded answers; otherwise it falls back to the
     # offline rule-based matcher.
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-2.5-flash"
     gemini_grounding: bool = True  # enable Google Search grounding for live data
 
     # What the assistant calls the user.
