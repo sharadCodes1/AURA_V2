@@ -24,9 +24,9 @@ This is a **monorepo** containing three services:
 - **AI service ↔ Backend**: service-to-service calls (validate JWTs, log commands, read macros) authed by a shared `X-Service-Token`.
 
 ## Status
-- ✅ `aura-be` — implemented & verified (auth, commands, macros, service auth). See [aura-be/README.md](./aura-be/README.md).
-- ✅ `aura-ai` — implemented & verified incl. **real speech-to-text** (Whisper). LangGraph pipeline, text + ws endpoints, JWT, logging. See [aura-ai/README.md](./aura-ai/README.md).
-- ✅ `aura-fe` — implemented & builds, incl. **native OS control via Tauri** (open/type/click/scroll/system). See [aura-fe/README.md](./aura-fe/README.md).
+-  `aura-be` — implemented & verified (auth, commands, macros, service auth). See [aura-be/README.md](./aura-be/README.md).
+-  `aura-ai` — implemented & verified incl. **real speech-to-text** (Whisper). LangGraph pipeline, text + ws endpoints, JWT, logging. See [aura-ai/README.md](./aura-ai/README.md).
+-  `aura-fe` — implemented & builds, incl. **native OS control via Tauri** (open/type/click/scroll/system). See [aura-fe/README.md](./aura-fe/README.md).
 
 Verified end-to-end: register/login on the frontend → backend issues a JWT → aura-ai validates it
 locally, transcribes speech, matches macros, resolves intents, and logs commands back to the backend.
