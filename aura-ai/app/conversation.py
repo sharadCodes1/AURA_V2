@@ -7,6 +7,8 @@ it hears until a sleep phrase ("stop listening", "go to sleep", "goodbye", ...).
 """
 import re
 
+from app.config import settings
+
 # greeting word + an "aura"-ish token
 WAKE_RE = re.compile(
     r"\b(hi|hey|hello|ok|okay|yo)\s+(aura|ora|arora|aurora|aaura|laura|orla|aura,)\b",
@@ -19,8 +21,8 @@ SLEEP_RE = re.compile(
     re.I,
 )
 
-GREETING = "Hi! I'm listening."
-SLEEP_REPLY = "Going to sleep. Say Hi Aura when you need me."
+GREETING = f"Hey {settings.user_name}, I'm listening."
+SLEEP_REPLY = f"Going to sleep. Say Hi Aura when you need me, {settings.user_name}."
 
 
 def detect_wake(transcript: str):

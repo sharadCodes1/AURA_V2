@@ -22,6 +22,10 @@ export function isTauri(): boolean {
 }
 
 export async function executeAction(payload: ActionPayload): Promise<ExecResult> {
+  // Pure conversation / chat reply — nothing to execute on the OS; it's spoken instead.
+  if (payload.action === "converse") {
+    return { ok: true, detail: "replied", simulated: false };
+  }
   if (payload.action === "unknown") {
     return { ok: false, detail: "no action", simulated: !isTauri() };
   }

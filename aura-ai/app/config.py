@@ -23,7 +23,17 @@ class Settings(BaseSettings):
     # Wake word for hands-free conversation mode.
     wake_word: str = "hi aura"
 
-    # Optional LLM intent fallback
+    # Conversational LLM (Google Gemini). If gemini_api_key is set, the agent uses
+    # Gemini for intent + chat + grounded answers; otherwise it falls back to the
+    # offline rule-based matcher.
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
+    gemini_grounding: bool = True  # enable Google Search grounding for live data
+
+    # What the assistant calls the user.
+    user_name: str = "Sharad"
+
+    # Optional LLM intent fallback (legacy / unused)
     llm_api_key: str = ""
 
     # Server

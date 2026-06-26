@@ -23,7 +23,13 @@ class ActionType(str, Enum):
     SCROLL = "scroll"
     SYSTEM_CONTROL = "system_control"   # volume, brightness, lock, shutdown, ...
     RUN_MACRO = "run_macro"             # expands to a list of steps
+    CONVERSE = "converse"               # no OS action — just speak a reply (chat / answers)
     UNKNOWN = "unknown"                 # could not resolve; ask the user to retry
+
+
+def converse_action(spoken_response: str) -> "ActionPayload":
+    """A pure conversational reply — speak it, perform no OS action."""
+    return ActionPayload(action=ActionType.CONVERSE, confidence=0.9, spoken_response=spoken_response)
 
 
 class ActionPayload(BaseModel):

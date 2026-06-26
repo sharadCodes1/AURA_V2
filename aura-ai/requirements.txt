@@ -12,6 +12,9 @@ websockets==13.1
 langgraph==0.2.50
 langchain-core==0.3.21
 
+# --- Conversational LLM (Google Gemini) ---
+google-genai>=0.8.0
+
 # --- Audio (OPTIONAL) ---
 # The service runs and the text pipeline (/api/process-text) works WITHOUT these.
 # Install them only when you want real speech-to-text / text-to-speech:

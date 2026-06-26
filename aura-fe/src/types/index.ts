@@ -27,6 +27,7 @@ export type ActionType =
   | "scroll"
   | "system_control"
   | "run_macro"
+  | "converse"
   | "unknown";
 
 export interface ActionPayload {

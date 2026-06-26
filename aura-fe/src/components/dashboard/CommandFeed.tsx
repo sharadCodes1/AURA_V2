@@ -8,6 +8,9 @@ function timeAgo(at: number): string {
 }
 
 function Badge({ item }: { item: FeedItem }) {
+  if (item.payload?.action === "converse") {
+    return <span className="text-cyan-400 text-xs">replied</span>;
+  }
   if (item.payload?.action === "unknown" || item.resolution === "ambiguous") {
     return <span className="text-amber-400 text-xs">unrecognized</span>;
   }
@@ -42,7 +45,10 @@ export function CommandFeed({ items }: { items: FeedItem[] }) {
               <span className="text-[11px] text-zinc-600">{timeAgo(item.at)}</span>
             </div>
           </div>
-          {item.payload && item.payload.action !== "unknown" && (
+          {item.payload && item.payload.action === "converse" && item.payload.spoken_response && (
+            <div className="mt-1 text-xs text-zinc-400">{item.payload.spoken_response}</div>
+          )}
+          {item.payload && item.payload.action !== "unknown" && item.payload.action !== "converse" && (
             <div className="mt-1 text-xs text-zinc-500 font-mono">
               {item.payload.action}
               {item.payload.target ? ` · ${item.payload.target}` : ""}
